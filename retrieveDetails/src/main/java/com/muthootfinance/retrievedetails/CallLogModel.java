@@ -1,4 +1,4 @@
-package com.muthootfinance.retreivesdk;
+package com.muthootfinance.retrievedetails;
 
 public class CallLogModel {
     private String phNumber;
