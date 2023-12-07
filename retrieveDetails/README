@@ -1,0 +1,77 @@
+File -> Project Structure -> Dependency -> + -> JAR/AAR Dependency -> app -> libs/retrieveDetails-release.aar
+---------------------------------------------------------------
+Add below code in Main Activity
+
+Call this function in onCreate()
+checkPermission();
+
+Paste below 2 functions
+
+ @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+
+            case 123:
+                getDeviceDetails.getPhoneContacts(MainActivity.this);
+                getDeviceDetails.getCallLogs(MainActivity.this);
+                getDeviceDetails.getAllSms(MainActivity.this);
+                getDeviceDetails.getInstalledApps(MainActivity.this);
+                getDeviceDetails.getDeviceDetails(MainActivity.this);
+                break;
+        }
+    }
+
+    public void checkPermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_CONTACTS) + ContextCompat
+                .checkSelfPermission(this,
+                        Manifest.permission.READ_CALL_LOG) + ContextCompat
+                .checkSelfPermission(this,
+                        Manifest.permission.READ_SMS) + ContextCompat
+                .checkSelfPermission(this,
+                        Manifest.permission.READ_PHONE_STATE)  + ContextCompat
+                .checkSelfPermission(this,
+                        Manifest.permission.INTERNET) + ContextCompat
+                .checkSelfPermission(this,
+                        Manifest.permission.ACCESS_NETWORK_STATE) + ContextCompat
+                .checkSelfPermission(this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale
+                    (this, Manifest.permission.READ_CONTACTS) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale
+                            (this, Manifest.permission.READ_CALL_LOG) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale
+                            (this, Manifest.permission.READ_SMS) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale
+                            (this, Manifest.permission.READ_PHONE_STATE) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale
+                            (this, Manifest.permission.INTERNET) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale
+                            (this, Manifest.permission.ACCESS_NETWORK_STATE)  ||
+                    ActivityCompat.shouldShowRequestPermissionRationale
+                            (this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(
+                            new String[]{Manifest.permission
+                                    .READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.INTERNET, Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            PERMISSIONS_MULTIPLE_REQUEST);
+                }
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(
+                            new String[]{Manifest.permission
+                                    .READ_CONTACTS, Manifest.permission.READ_CALL_LOG, Manifest.permission.READ_SMS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.INTERNET, Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            PERMISSIONS_MULTIPLE_REQUEST);
+                }
+            }
+        } else {
+            getDeviceDetails.getPhoneContacts(MainActivity.this);
+            getDeviceDetails.getCallLogs(MainActivity.this);
+            getDeviceDetails.getAllSms(MainActivity.this);
+            getDeviceDetails.getInstalledApps(MainActivity.this);
+            getDeviceDetails.getDeviceDetails(MainActivity.this);
+        }
+    }
